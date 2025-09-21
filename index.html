@@ -141,7 +141,7 @@
             <div id="listeningIndicator" class="hidden mb-6">
                 <div class="flex items-center justify-center space-x-3 text-blue-600 text-lg bg-white rounded-2xl p-4 shadow-lg border-2 border-blue-200">
                     <div class="w-4 h-4 bg-blue-500 rounded-full pulse-animation"></div>
-                    <span class="font-bold">🎤 음성 인식 중... "얌인포"라고 불러주세요</span>
+                    <span class="font-bold">🎤 음성인식 대기 중</span>
                 </div>
             </div>
 
@@ -195,7 +195,7 @@
                         <p class="text-sm text-blue-800 font-medium">🎤 음성 명령 사용법</p>
                         <p class="text-xs text-blue-700 mt-1"><strong>1단계:</strong> 위의 "마이크 테스트" 버튼을 먼저 눌러보세요</p>
                         <p class="text-xs text-blue-700 mt-1"><strong>2단계:</strong> 마이크 권한을 허용해주세요</p>
-                        <p class="text-xs text-blue-700 mt-1"><strong>3단계:</strong> "얌인포, 유통기한 알려줘" 같이 말해보세요</p>
+                        <p class="text-xs text-blue-700 mt-1"><strong>3단계:</strong> "알리미, 유통기한 알려줘" 또는 "얌인포, 영양정보 알려줘" 같이 말해보세요</p>
                         <p class="text-xs text-blue-700 mt-1"><strong>💡 팁:</strong> 조용한 곳에서 또렷하게 말해주세요</p>
                     </div>
                 </div>
@@ -260,8 +260,8 @@
 
             <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
                 <div class="text-center mb-6">
-                    <div class="text-6xl mb-4">🥛</div>
-                    <h2 class="text-2xl font-bold text-blue-800 mb-4">면과 스프</h2>
+                    <div class="text-6xl mb-4">🍜</div>
+                    <h2 class="text-2xl font-bold text-blue-800 mb-4">진라면 매운맛 원재료</h2>
                     <p class="text-lg text-gray-600">(국내산 밀가루 사용)</p>
                 </div>
 
@@ -485,8 +485,8 @@
         let isSpeaking = false;
         let recognition = null;
         let isListening = false;
-        let speechStartTime = 0; // 음성 시작 시간 추적
-        let originalText = ''; // 원본 텍스트 저장
+        let speechStartTime = 0;
+        let originalText = '';
 
         const mainPlayBtn = document.getElementById('mainPlayBtn');
         const playIcon = document.getElementById('playIcon');
@@ -494,11 +494,10 @@
         const speakingIndicator = document.getElementById('speakingIndicator');
         const speedControl = document.getElementById('speedControl');
 
-        // 음성인식 초기화 - 완전히 새로운 안정적인 방식
+        // 음성인식 초기화
         function initSpeechRecognition() {
             console.log('🎤 음성인식 초기화 시작...');
             
-            // 브라우저 지원 확인
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                 console.log('❌ 이 브라우저는 음성인식을 지원하지 않습니다.');
                 showStatus('❌ 이 브라우저는 음성인식을 지원하지 않습니다.', 'error');
@@ -509,10 +508,9 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
                 
-                // 단순하고 안정적인 설정
                 recognition.lang = 'ko-KR';
-                recognition.continuous = false; // 연속 모드 비활성화로 안정성 향상
-                recognition.interimResults = false; // 중간 결과 비활성화로 성능 향상
+                recognition.continuous = false;
+                recognition.interimResults = false;
                 recognition.maxAlternatives = 1;
                 
                 let isProcessing = false;
@@ -521,7 +519,7 @@
                     isListening = true;
                     showListeningIndicator();
                     console.log('✅ 음성인식 시작됨');
-                    showStatus('✅ 음성인식 활성화! "얌인포"라고 말해보세요', 'success', 3000);
+                    showStatus('✅ 음성인식 활성화! "알리미" 또는 "얌인포"라고 말해보세요', 'success', 3000);
                 };
                 
                 recognition.onresult = function(event) {
@@ -537,8 +535,7 @@
                     console.log('🔊 인식된 음성:', transcript);
                     
                     if (transcript.length > 1) {
-                        // 호출어 감지 - 더 관대한 매칭
-                        const triggerWords = ['얌인포', '얌 인포', '알리미', '얌', '인포', '야민포', '얌 인 포'];
+                        const triggerWords = ['알리미', '알 리미', '알리', '리미', '알림이', '알리미야', '얌인포', '얌 인포', '얌인', '인포', '얌', '야민포'];
                         const hasTrigger = triggerWords.some(word => transcript.includes(word));
                         
                         if (hasTrigger) {
@@ -546,16 +543,12 @@
                             handleVoiceCommand(transcript);
                         } else {
                             console.log('⚠️ 호출어 없음:', transcript);
-                            showStatus(`인식됨: "${transcript}" - "얌인포"라고 말해주세요`, 'warning', 2000);
+                            showStatus(`인식됨: "${transcript}" - "알리미" 또는 "얌인포"라고 말해주세요`, 'warning', 2000);
                         }
                     }
                     
-                    // 처리 완료 후 자동 재시작
                     setTimeout(() => {
                         isProcessing = false;
-                        if (!isSpeaking) {
-                            startListening();
-                        }
                     }, 1000);
                 };
                 
@@ -590,26 +583,12 @@
                     
                     showStatus(errorMessage, 'error', 3000);
                     hideListeningIndicator();
-                    
-                    // 자동 재시작
-                    if (shouldRestart && !isSpeaking) {
-                        setTimeout(() => {
-                            startListening();
-                        }, 2000);
-                    }
                 };
                 
                 recognition.onend = function() {
                     isListening = false;
                     hideListeningIndicator();
                     console.log('🔇 음성인식 종료됨');
-                    
-                    // 음성 재생 중이 아니면 자동 재시작
-                    if (!isSpeaking && !isProcessing) {
-                        setTimeout(() => {
-                            startListening();
-                        }, 500);
-                    }
                 };
                 
                 console.log('✅ 음성인식 초기화 완료');
@@ -622,7 +601,6 @@
             }
         }
 
-        // 상태 메시지 표시 함수
         function showStatus(message, type = 'info', duration = 5000) {
             const statusDiv = document.getElementById('microphoneStatus');
             if (!statusDiv) return;
@@ -643,7 +621,6 @@
             }
         }
 
-        // 음성인식 시작 함수 - 단순하고 안정적인 방식
         function startListening() {
             if (!recognition) {
                 console.log('❌ 음성인식이 초기화되지 않았습니다.');
@@ -668,7 +645,6 @@
                 console.log('❌ 음성인식 시작 오류:', error);
                 
                 if (error.name === 'InvalidStateError') {
-                    // 이미 실행 중인 경우 잠시 후 재시도
                     setTimeout(() => {
                         if (!isListening) {
                             startListening();
@@ -680,29 +656,19 @@
             }
         }
 
-        // 마이크 테스트 함수 - 단순하고 직관적인 방식
         async function testMicrophone() {
             showStatus('🎤 마이크 테스트를 시작합니다...', 'info');
             
             try {
-                // 마이크 권한 요청 및 접근
                 const stream = await navigator.mediaDevices.getUserMedia({ 
                     audio: true
                 });
                 
                 showStatus('✅ 마이크 접근 성공! 3초간 "안녕하세요"라고 말해보세요', 'success');
                 
-                // 3초 후 스트림 정리
                 setTimeout(() => {
                     stream.getTracks().forEach(track => track.stop());
-                    showStatus('✅ 마이크 테스트 완료! 이제 "얌인포"라고 말해보세요', 'success', 3000);
-                    
-                    // 음성인식 재시작
-                    setTimeout(() => {
-                        if (!isListening) {
-                            startListening();
-                        }
-                    }, 1000);
+                    showStatus('✅ 마이크 테스트 완료! "음성인식 다시 시작" 버튼을 눌러주세요', 'success', 5000);
                 }, 3000);
                 
             } catch (error) {
@@ -732,10 +698,7 @@
                 showStatus(`${errorMessage}. ${solution}`, 'error', 8000);
             }
         }
-        
 
-
-        // 음성인식 강제 재시작 함수
         function restartListening() {
             showStatus('🔄 음성인식을 다시 시작합니다...', 'info');
             
@@ -756,7 +719,6 @@
             }
         }
 
-        // 인식할 명령어와 실행할 동작을 연결하는 객체
         const commandMap = {
             '유통기한': 'expiry',
             '원재료': 'ingredients',
@@ -769,11 +731,9 @@
             '전체': 'all'
         };
 
-        // 음성 명령 처리 - 알리미 호출어 지원
         function handleVoiceCommand(transcript) {
             console.log('🎯 명령 처리 중:', transcript);
             
-            // 음성인식 일시 정지
             if (recognition && isListening) {
                 recognition.stop();
             }
@@ -782,7 +742,6 @@
             let shouldSpeak = true;
             let command = '';
             
-            // "알리미" 또는 "얌인포" 호출어 제거하고 명령어 추출
             if (transcript.includes('알리미')) {
                 command = transcript.replace(/알리미\s*/, '').trim();
             } else if (transcript.includes('얌인포')) {
@@ -793,16 +752,13 @@
             
             console.log('처리할 명령어:', command);
             
-            // 명령어 매핑 확인
             if (command) {
-                // 명령어와 일치하는 키워드 찾기
                 const normalizedCommand = Object.keys(commandMap).find(key => command.includes(key));
                 
                 if (normalizedCommand) {
                     const pageId = commandMap[normalizedCommand];
                     console.log('실행할 페이지:', pageId);
                     
-                    // 페이지 이동 및 음성 안내
                     switch(pageId) {
                         case 'expiry':
                             response = generateDetailSpeechText('expiry');
@@ -831,7 +787,6 @@
                             break;
                     }
                 } else {
-                    // 기존 명령어 처리 로직
                     if (command.includes('메인') || command.includes('처음') || command.includes('홈') || command.includes('돌아가')) {
                         showMainPage();
                         response = '메인 페이지로 돌아갑니다.';
@@ -843,7 +798,6 @@
                     } else if (command.includes('빨리') || command.includes('빠르게') || command.includes('속도')) {
                         const newSpeed = Math.min(1.0, parseFloat(speedControl.value) + 0.1);
                         speedControl.value = newSpeed;
-                        // 속도 표시 업데이트
                         const speedValue = document.getElementById('speedValue');
                         if (speedValue) {
                             speedValue.textContent = `현재: ${newSpeed}배속`;
@@ -853,7 +807,6 @@
                     } else if (command.includes('천천히') || command.includes('느리게')) {
                         const newSpeed = Math.max(0.6, parseFloat(speedControl.value) - 0.1);
                         speedControl.value = newSpeed;
-                        // 속도 표시 업데이트
                         const speedValue = document.getElementById('speedValue');
                         if (speedValue) {
                             speedValue.textContent = `현재: ${newSpeed}배속`;
@@ -861,34 +814,29 @@
                         response = `음성 속도를 ${newSpeed}배속으로 느리게 조정했습니다.`;
                         console.log('🐌 속도 감소 요청');
                     } else if (command.includes('안녕') || command.includes('헬로') || command.includes('하이')) {
-                        response = '안녕하세요! 얌인포입니다. 유통기한, 원재료, 영양정보, 주의사항 중 무엇을 알고 싶으신가요?';
+                        response = '안녕하세요! 음성 안내 서비스입니다. 유통기한, 원재료, 영양정보, 주의사항 중 무엇을 알고 싶으신가요?';
                         console.log('👋 인사 요청');
                     } else {
-                        // 명령을 이해하지 못했을 때
                         response = '죄송합니다. 명령을 이해하지 못했습니다. 유통기한, 원재료, 영양정보, 주의사항, 전체정보 중 하나를 말씀해주세요.';
                         console.log('❓ 명령 이해 실패:', command);
                     }
                 }
             } else {
-                // 호출어만 있고 명령어가 없을 때
-                response = '네, 얌인포입니다! 유통기한, 원재료, 영양정보, 주의사항, 전체정보 중 무엇을 알고 싶으신가요?';
+                response = '네, 음성 안내 서비스입니다! 유통기한, 원재료, 영양정보, 주의사항, 전체정보 중 무엇을 알고 싶으신가요?';
                 console.log('❓ 일반 응답');
             }
             
             if (shouldSpeak && response) {
-                // 현재 재생 중인 음성이 있으면 정지
                 if (isSpeaking) {
                     stopSpeech();
                 }
                 
-                // 응답 재생
                 setTimeout(() => {
                     startSpeech(response);
                 }, 300);
             }
         }
 
-        // 음성인식 상태 표시
         function showListeningIndicator() {
             const indicator = document.getElementById('listeningIndicator');
             if (indicator) {
@@ -903,7 +851,6 @@
             }
         }
 
-        // 페이지 전환 함수
         function showDetailPage(section) {
             document.getElementById('mainPage').classList.remove('active');
             
@@ -936,7 +883,6 @@
             document.getElementById('mainPage').classList.add('active');
         }
 
-        // 전체 상품 정보 텍스트 생성
         function generateFullSpeechText() {
             const productName = document.getElementById('productName').textContent;
             const expiryDate = document.getElementById('expiryDate').textContent;
@@ -957,46 +903,42 @@
             `;
         }
 
-        // 상세 섹션별 음성 텍스트 생성
         function generateDetailSpeechText(section) {
             switch(section) {
                 case 'expiry':
-                    return `유통기한 정보를 안내해드리겠습니다. 이 제품의 유통기한은 이천이십오년 구월 삼십일까지입니다. 제조일자는 이천이십오년 구월 이십오일이며, 제조일로부터 5일간 신선하게 드실 수 있습니다. 냉장고 4도 이하에서 보관하시고, 개봉 후에는 3일 이내에 드세요.`;
+                    return `유통기한 정보를 안내해드리겠습니다. 이 제품의 유통기한은 이천이십오년 십이월 십오일까지입니다. 제조일자는 이천이십사년 십이월 십일이며, 제조일로부터 일년간 보관 가능합니다. 직사광선을 피해 서늘하고 건조한 곳에 보관하세요.`;
                     
                 case 'ingredients':
-                    return `원재료 정보를 안내해드리겠습니다. 이 제품은 유기농 원유 100퍼센트로 만들어졌으며, 모두 국내산입니다. 국가 유기농 인증을 받은 목장에서 생산된 원유만을 사용하며, 항생제와 성장호르몬을 사용하지 않아 안전하게 생산되었습니다.`;
+                    return `원재료 정보를 안내해드리겠습니다. 진라면 매운맛은 면과 스프로 구성되어 있습니다. 면에는 국내산 밀가루, 팜유, 정제염, 산도조절제가 들어있고, 스프에는 고춧가루, 마늘, 양파, 파, 후추 등의 향신료가 포함되어 있습니다. 매콤하고 진한 국물맛이 일품인 대표적인 한국 라면입니다.`;
                     
                 case 'nutrition':
-                    return `영양정보를 자세히 안내해드리겠습니다. 100밀리리터당 칼로리는 67킬로칼로리, 단백질 3.2그램, 지방 3.8그램, 탄수화물 4.7그램이 들어있습니다. 또한 칼슘 113밀리그램과 나트륨 44밀리그램이 포함되어 있어 영양가가 풍부합니다.`;
+                    return `영양정보를 자세히 안내해드리겠습니다. 일개 백이십그램당 칼로리는 오백십킬로칼로리, 단백질 구점팔그램, 지방 십구점이그램, 탄수화물 칠십이점일그램이 들어있습니다. 또한 나트륨 천칠백구십밀리그램과 당류 오점이그램이 포함되어 있습니다.`;
                     
                 case 'warning':
-                    return `주의사항을 안내해드리겠습니다. 냉장고 4도 이하에서 보관해주시고, 개봉 후에는 3일 이내에 섭취해주세요. 가열하실 때는 끓이지 마시고 60도 이하로 데워서 드세요. 알레르기 정보를 말씀드리면, 이 제품에는 우유가 함유되어 있으며, 우유를 사용한 제품과 같은 제조시설에서 생산됩니다. 유제품 알레르기가 있는 분은 섭취를 피해주시기 바랍니다.`;
+                    return `주의사항을 안내해드리겠습니다. 직사광선을 피해 서늘하고 건조한 곳에 보관해주시고, 끓는 물에 조리할 때 화상에 주의하세요. 어린이는 보호자와 함께 조리해주세요. 끓는 물 오백오십밀리리터에 면과 스프를 넣고 사분간 끓여주세요. 알레르기 정보를 말씀드리면, 이 제품에는 밀과 대두가 함유되어 있으며, 계란, 우유, 새우를 사용한 제품과 같은 제조시설에서 생산됩니다.`;
                     
                 case 'all':
-                    return `전체 정보를 안내해드리겠습니다. 프리미엄 유기농 우유 1000밀리리터 제품입니다. 자연목장 주식회사에서 제조하였으며, 소비자상담실 전화번호는 1588-1234번입니다. 평일 오전 9시부터 오후 6시까지 운영합니다. 냉장고 4도 이하에서 보관하시고, 직사광선을 피해 서늘한 곳에 보관해주세요. 유기농 인증과 해썹 인증을 받은 안전한 제품입니다.`;
+                    return `전체 정보를 안내해드리겠습니다. 진라면 매운맛 백이십그램 컵라면 제품입니다. 오뚜기 주식회사에서 제조하였으며, 소비자상담실 전화번호는 공팔공 공이삼 팔팔팔팔번입니다. 평일 오전 구시부터 오후 육시까지 운영합니다. 직사광선을 피해 서늘하고 건조한 곳에 보관하시고, 실온보관이 가능합니다. 해썹 인증과 아이에스오 이만이천 인증을 받은 안전한 제품입니다.`;
                     
                 default:
                     return generateFullSpeechText();
             }
         }
 
-        // 음성 재생 함수
         function startSpeech(text = null) {
             if ('speechSynthesis' in window) {
                 const speechText = text || generateFullSpeechText();
-                originalText = speechText; // 원본 텍스트 저장
+                originalText = speechText;
                 currentSpeech = new SpeechSynthesisUtterance(speechText);
                 
-                // 한국어 설정 - 부드러운 음성
                 currentSpeech.lang = 'ko-KR';
                 currentSpeech.rate = parseFloat(speedControl.value);
                 currentSpeech.pitch = 0.9;
                 currentSpeech.volume = 0.9;
 
-                // 음성 시작 이벤트
                 currentSpeech.onstart = function() {
                     isSpeaking = true;
-                    speechStartTime = Date.now(); // 시작 시간 기록
+                    speechStartTime = Date.now();
                     if (playIcon && stopIcon) {
                         playIcon.classList.add('hidden');
                         stopIcon.classList.remove('hidden');
@@ -1007,12 +949,10 @@
                     }
                 };
 
-                // 음성 종료 이벤트
                 currentSpeech.onend = function() {
                     resetSpeechControls();
                 };
 
-                // 음성 에러 이벤트
                 currentSpeech.onerror = function() {
                     resetSpeechControls();
                     alert('음성 재생 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -1024,7 +964,6 @@
             }
         }
 
-        // 음성 정지 함수
         function stopSpeech() {
             if (speechSynthesis.speaking) {
                 speechSynthesis.cancel();
@@ -1032,7 +971,6 @@
             resetSpeechControls();
         }
 
-        // 컨트롤 초기화
         function resetSpeechControls() {
             isSpeaking = false;
             if (playIcon && stopIcon) {
@@ -1045,7 +983,6 @@
             }
         }
 
-        // 상세 섹션 음성 재생
         function speakDetailSection(section) {
             if (isSpeaking) {
                 stopSpeech();
@@ -1054,7 +991,6 @@
             startSpeech(text);
         }
 
-        // 메인 버튼 이벤트
         if (mainPlayBtn) {
             mainPlayBtn.addEventListener('click', function() {
                 if (isSpeaking) {
@@ -1065,14 +1001,12 @@
             });
         }
 
-        // 음성 속도 실시간 변경 - 현재 위치부터 이어서 재생
         let speedChangeTimeout = null;
         let lastSpeedChange = 0;
-        let currentTextPosition = 0; // 현재 재생 위치 추적
-        let estimatedWordsPerSecond = 3; // 초당 단어 수 (한국어 기준)
+        let currentTextPosition = 0;
+        let estimatedWordsPerSecond = 3;
         
         if (speedControl) {
-            // 속도 표시 업데이트 함수
             function updateSpeedDisplay() {
                 const speedValue = document.getElementById('speedValue');
                 if (speedValue) {
@@ -1082,18 +1016,15 @@
             
             speedControl.addEventListener('input', function() {
                 const newRate = parseFloat(speedControl.value);
-                updateSpeedDisplay(); // 실시간 표시 업데이트
+                updateSpeedDisplay();
                 
                 if (currentSpeech && isSpeaking) {
-                    // 기존 타이머 취소
                     if (speedChangeTimeout) {
                         clearTimeout(speedChangeTimeout);
                     }
                     
-                    // 현재 시간 기록
                     lastSpeedChange = Date.now();
                     
-                    // 즉시 속도 변경 시도 (Chrome, Edge에서 지원)
                     try {
                         currentSpeech.rate = newRate;
                         console.log('속도 즉시 변경:', newRate);
@@ -1101,33 +1032,26 @@
                         console.log('즉시 속도 변경 불가:', error);
                     }
                     
-                    // 300ms 후에도 변경이 반영되지 않았다면 현재 위치부터 재시작
                     speedChangeTimeout = setTimeout(() => {
-                        // 사용자가 계속 조절 중이면 대기
                         if (Date.now() - lastSpeedChange < 250) {
                             return;
                         }
                         
                         if (currentSpeech && isSpeaking && originalText) {
-                            // 현재 재생 위치 계산 (경과 시간 기반)
                             const elapsedTime = (Date.now() - speechStartTime) / 1000;
                             const currentRate = currentSpeech.rate || 0.8;
                             const wordsSpoken = elapsedTime * estimatedWordsPerSecond * currentRate;
                             
-                            // 텍스트를 단어 단위로 분할
                             const words = originalText.split(/\s+/);
                             const currentWordIndex = Math.floor(Math.min(wordsSpoken, words.length - 1));
                             
-                            // 현재 위치부터 남은 텍스트 추출 (조금 앞에서부터 다시 시작)
-                            const backtrackWords = Math.min(5, currentWordIndex); // 최대 5단어 뒤로
+                            const backtrackWords = Math.min(5, currentWordIndex);
                             const startIndex = Math.max(0, currentWordIndex - backtrackWords);
                             const remainingText = words.slice(startIndex).join(' ');
                             
                             console.log(`현재 위치: ${currentWordIndex}/${words.length} 단어, ${backtrackWords}단어 뒤에서 재시작, 남은 텍스트 길이: ${remainingText.length}`);
                             
-                            // 남은 텍스트가 충분히 있을 때만 재시작
                             if (remainingText.length > 10) {
-                                // 부드러운 페이드아웃
                                 const fadeSteps = 3;
                                 let currentStep = 0;
                                 const originalVolume = currentSpeech.volume;
@@ -1142,10 +1066,8 @@
                                     if (currentStep >= fadeSteps) {
                                         clearInterval(fadeOut);
                                         
-                                        // 현재 음성 정지
                                         speechSynthesis.cancel();
                                         
-                                        // 남은 텍스트로 새로운 속도로 재시작
                                         setTimeout(() => {
                                             currentSpeech = new SpeechSynthesisUtterance(remainingText);
                                             currentSpeech.lang = 'ko-KR';
@@ -1153,7 +1075,6 @@
                                             currentSpeech.pitch = 0.9;
                                             currentSpeech.volume = originalVolume;
                                             
-                                            // 새로운 시작 시간 설정
                                             speechStartTime = Date.now();
                                             
                                             currentSpeech.onstart = function() {
@@ -1177,38 +1098,55 @@
                                             };
                                             
                                             speechSynthesis.speak(currentSpeech);
-                                        }, 5); // 최소 지연
+                                        }, 5);
                                     }
-                                }, 15); // 빠른 페이드아웃
+                                }, 15);
                             } else {
-                                // 남은 텍스트가 적으면 속도만 변경
                                 try {
                                     currentSpeech.rate = newRate;
                                 } catch (e) {}
                             }
                         }
-                    }, 300); // 0.3초 후 재시작 (더 빠른 반응)
+                    }, 300);
                 }
             });
             
-            // 초기 속도 표시
             updateSpeedDisplay();
         }
 
-        // 페이지 로드 시 음성인식 초기화 및 자동 시작
+        let hasUserInteracted = false;
+        
+        document.addEventListener('click', () => { hasUserInteracted = true; }, { once: true });
+        document.addEventListener('touchstart', () => { hasUserInteracted = true; }, { once: true });
+        document.addEventListener('keydown', () => { hasUserInteracted = true; }, { once: true });
+        
+
+        
+        window.addEventListener('beforeunload', function(e) {
+            if (hasUserInteracted && (isListening || isSpeaking)) {
+                const message = '음성인식이 실행 중입니다. 정말 페이지를 떠나시겠습니까?';
+                e.preventDefault();
+                e.returnValue = message;
+                return message;
+            }
+        });
+        
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && isListening) {
+                console.log('🔇 페이지가 백그라운드로 이동 - 음성인식 정지');
+                if (recognition) {
+                    recognition.stop();
+                }
+            }
+        });
+        
         window.addEventListener('load', function() {
-            // 음성인식 초기화
             if (initSpeechRecognition()) {
                 console.log('✅ YumInfo가 준비되었습니다.');
-                // 2초 후 자동으로 음성인식 시작
-                setTimeout(() => {
-                    startListening();
-                    console.log('🎤 음성인식이 자동으로 시작되었습니다. "얌인포"라고 불러주세요!');
-                }, 2000);
+                showStatus('✅ 음성인식이 준비되었습니다. "마이크 테스트" 버튼을 눌러 시작하세요!', 'success', 5000);
             }
         });
 
-        // 키보드 접근성 (스페이스바로 재생/정지)
         document.addEventListener('keydown', function(e) {
             if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
                 e.preventDefault();
@@ -1220,5 +1158,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98281bd43002ea2b',t:'MTc1ODQ0MjQ2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9828e1e1025beab1',t:'MTc1ODQ1MDU3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
